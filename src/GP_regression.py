@@ -1,6 +1,6 @@
 __author__ = 'Naheed'
 
-import FullGP_RBF
+import FullGP_RBF, SparseGP
 import numpy as np
 import pandas as pd
 import time
@@ -11,10 +11,17 @@ class GPregression:
         self.trainx = trainx
         self.trainy = np.array([[i] for i in trainy])
 
-    def BuildModel(self):
+    def BuildModel(self, model="full"):
         start_time = time.time()
-        self.model = FullGP_RBF.FullGP_RBF(self.trainx, self.trainy)
-        self.model.InferHypersHMC(1000)
+        if model == "full":
+            print "Building FullGP Model"
+            self.model = FullGP_RBF.FullGP_RBF(self.trainx, self.trainy)
+            self.model.InferHypersHMC(500)
+
+        if model == "sparse":
+            print "Building Sparse GP Model"
+            self.model = SparseGP.SparseGP(self.trainx, self.trainy, 5)
+
         print("--- Training Model : %s minutes ---" % round(((time.time() - start_time) / 60), 2))
 
     def predict(self, testsetx):

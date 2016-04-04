@@ -4,15 +4,22 @@ import pandas as pd
 from nltk.stem.snowball import SnowballStemmer
 import time, sys
 from GP_regression import GPregression
+from SparseGP import SparseGP
 from randomforest_regression import RandomForest
 
 stemmer = SnowballStemmer('english')
 
-slice = 1000
-df_train = pd.read_csv('../data/train.csv', encoding="ISO-8859-1")[:slice]
-df_test = pd.read_csv('../data/test.csv', encoding="ISO-8859-1")[:slice]
-# df_attr = pd.read_csv('../input/attributes.csv')
-df_pro_desc = pd.read_csv('../data/product_descriptions.csv')[:slice]
+slice = None
+if slice:
+    df_train = pd.read_csv('../data/train.csv', encoding="ISO-8859-1")[:slice]
+    df_test = pd.read_csv('../data/test.csv', encoding="ISO-8859-1")[:slice]
+    # df_attr = pd.read_csv('../input/attributes.csv')
+    df_pro_desc = pd.read_csv('../data/product_descriptions.csv')[:slice]
+else:
+    df_train = pd.read_csv('../data/train.csv', encoding="ISO-8859-1")
+    df_test = pd.read_csv('../data/test.csv', encoding="ISO-8859-1")
+    # df_attr = pd.read_csv('../input/attributes.csv')
+    df_pro_desc = pd.read_csv('../data/product_descriptions.csv')
 
 num_train = df_train.shape[0]
 print 'num_train: ', num_train
@@ -67,8 +74,9 @@ print 'x-train: axes- ', X_train[0:2]
 print 'y-train:', y_train[0:2]
 print 'x-test axes: ', X_test[0:2]
 
+
 gpreg = GPregression(X_train, y_train)
-gpreg.BuildModel()
+gpreg.BuildModel("sparse")
 y_mean, y_var = gpreg.predict(X_test)
 
 print y_mean.flatten()
