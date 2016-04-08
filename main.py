@@ -4,13 +4,22 @@ from src.Lda import Lda
 __author__ = 'Naheed'
 
 topic_bins = []
-
+load_pickled = True  # Whether want to load pickled bins from pk file
 
 def run_phaseone():
-    ld = Lda()
-    ld.runlda()
-    topic_bins = ld.bin  # List of List(product_id)
+    if load_pickled:
+        import pickle
+        with open('./test/topicbins.pk') as f:
+            topic_bins = pickle.load(f)
 
+    else:
+        ld = Lda()
+        ld.runlda()
+        topic_bins = ld.bin  # List of List(product_id)
+
+    for i in topic_bins:
+        if i:
+            print len(i)
 
 def run_phasetwo():
     '''
@@ -34,5 +43,5 @@ def get_prediction():
     pass
 
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     run_phaseone()
