@@ -25,9 +25,9 @@ def stemmer(sent):
 
 
 loaded = True  # True, If autoload self.df_all from MergedProductInfo csv file, False if i want to make it on the fly.
-NUM_TOPICS = 1000  # Number of Topics i want to extract Out of the whole corpus of documents.
-n_top_words = 20  # Number of words per topic having most probability.
-
+NUM_TOPICS = 80  # Number of Topics i want to extract Out of the whole corpus of documents.
+# n_top_words = 100  # Number of words per topic having most probability.
+n_top_words = 10  # Number of words per topic having most probability.
 
 class Lda:
     '''
@@ -72,23 +72,27 @@ class Lda:
             # df_extracted = df_all[['product_uid','allaboutproduct']]
 
             # df_extracted.to_csv('../src/MergedProductinfo.csv',encoding = "ISO-8859-1")
-            self.df_all = pd.read_csv('../src/MergedProductinfo.csv', encoding="ISO-8859-1")
+            self.df_all = pd.read_csv('src/MergedProductinfo.csv', encoding="ISO-8859-1")
 
     def runlda(self):
         # vectorizer = CountVectorizer(encoding = "ISO-8859-1",analyzer = 'word',tokenizer = None,preprocessor= None)
+        # vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
+        #                                     preprocessor=None, max_features=15000)
+
         vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
-                                     preprocessor=None, max_features=10000)
+                                     preprocessor=None, max_features=500)
 
         feat = vectorizer.fit_transform(self.df_all['allaboutproduct'])
         features = feat.toarray()
         # print features.shape
-        model = lda.LDA(n_topics=NUM_TOPICS, n_iter=150, random_state=1)
+        model = lda.LDA(n_topics=NUM_TOPICS, n_iter=50, random_state=1)
         model.fit(features)
         topic_word = model.topic_word_
         # print topic_word
         vocab = vectorizer.get_feature_names()
         # print vocab[:10]
 
+        self.topic_words = [[] for i in range(NUM_TOPICS)]
         for i, topic_dist in enumerate(topic_word):
             self.topic_words[i] = np.array(vocab)[np.argsort(topic_dist)][:-n_top_words - 1:-1]
             # print('Topic {}: {}'.format(i, ' '.join(topic_words)))
@@ -108,5 +112,9 @@ class Lda:
             # print("doc: {} topic: {}\n{}...".format(n, topic_most_pr, self.df_all['allaboutproduct'][n].encode("utf8")))
             self.bin[topic_most_pr].append(self.df_all['product_uid'][n])
 
+        print type(self.bin)
+        print len(self.bin[0])
+        print len(self.bin[1])
+        # Dump the bin into a pickle file to make the phase one independent of phase two
         with open('topicbins.pk', 'wb') as fp:
             pickle.dump(self.bin, fp)
