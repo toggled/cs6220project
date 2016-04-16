@@ -149,6 +149,7 @@ if __name__ == '__main__':
         y_predicted = weighted_sum(np.matrix(result_matrix),weight_d_t)
         error = np.sqrt(mean_squared_error(y_predicted,test_data[1]))
 
+        #record the error of each iteration
         errors= errors + [error]
 
         print 'Iteration ', iteration, ': All models trained, time used:', time() - time0_0
@@ -157,8 +158,6 @@ if __name__ == '__main__':
 
     print '\nJOB DONE: the ', K_fold, ' fold Cross Validation has completed, time used: ', time() - timezero
     print 'The mean of RMSE is: ', error_f
-
-
 
     #Save the trained models
     f1 = file('trained_model.pkl','wb')

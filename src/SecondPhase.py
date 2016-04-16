@@ -57,9 +57,11 @@ class SecondPhase():
         elif type == 1:
             return 0
 
-    def weighted_sum(self, matrix,weight_vector):
+    def weighted_sum(self, matrix, weight_vector):
+        matrix = matrix.T
         if len(weight_vector) == 0:
-            matrix = matrix.T
             return matrix.mean(axis=1)
         else:
-            return 0
+            ws = matrix.dot(weight_vector).A1
+            return ws
+
