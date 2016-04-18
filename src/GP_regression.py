@@ -16,7 +16,7 @@ class GPregression:
         if model == "full":
             print "Building FullGP Model"
             self.model = FullGP_RBF.FullGP_RBF(self.trainx, self.trainy)
-            self.model.InferHypersHMC(50)
+            self.model.InferHypersHMC(100)
 
         if model == "sparse":
             print "Building Sparse GP Model"

@@ -70,7 +70,7 @@ def run_phasetwo():
         if len(bin) > 0:
             newbins.append(bin)
 
-
+    print 'number of non-empty bins: ',len(newbins)
 
     ######################
     ## Cross Validation ##
@@ -110,7 +110,7 @@ def run_phasetwo():
             if MODEL_TYPE == 0:
                 clf.fit(X_train, y_train)
             else:
-                clf.BuildModel(model='full')
+                clf.BuildModel(model='sparse')
 
             # try using Gaussian Processing Regression:
             # if MODEL_TYPE == 1:
