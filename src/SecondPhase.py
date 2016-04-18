@@ -64,8 +64,11 @@ class SecondPhase():
         for n in range(len(uids)):
             if weighted == 0:
                 vector = matrix[n].A1
-                print vector
-                pred = vector[np.array(weight_vector[uids[n]]).argmax()]
+                li = weight_vector[uids[n]]
+                try:
+                    pred = vector[np.array(weight_vector[uids[n]]).argmax()]
+                except:
+                    pred = np.mean(matrix[n])
             else:
                 li = weight_vector[uids[n]]
                 try:
