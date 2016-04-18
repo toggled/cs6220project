@@ -7,17 +7,23 @@ import numpy as np
 from time import time
 from sklearn.cross_validation import KFold
 from sklearn.metrics import mean_squared_error
+import csv
 
 
 
 __author__ = 'Naheed'
 
 bins_dir = '/Users/Oyang/Documents/workspace/6220/tmp/'
-df_dir = 'src/'
+
+df_dir = 'data/'
+
 # if equals 0, use random forest, if equals 1, use gaussian process regression
 MODEL_TYPE = 1
 # Ture means for running on the fly(usually for the first time), False for running on the local stored data.
 realtime = False
+# if weighted = 0, chose the model with highest probability, it weighted = 1, use weighted sum
+WEIGHTED = 0
+
 K_fold = 2
 topic_bins = []
 load_pickled = False  # Whether want to load pickled bins from pk file
@@ -63,7 +69,7 @@ def run_phasetwo():
     # weight_d_t is the documenet-topic probability, which is a list
     weight_d_t = []
 
-    f1 = file('topicbins.pk', 'rb')
+    f1 = file('topicbins.pkl', 'rb')
     bins = pk.load(f1)
     newbins = []
     for bin in bins:
@@ -85,6 +91,7 @@ def run_phasetwo():
         print '\nIteration ', iteration, ' starts'
         train_set = df.iloc[train_index]
         test_set = df.iloc[test_index]
+        uids = test_set['product_uid'].values
 
         time0 = time()
         train_bin = process.train_data_construct(newbins, train_set, iteration, realtime)
@@ -130,9 +137,9 @@ def run_phasetwo():
             result_matrix.append(result)
             print 'model ', i , ' trained and predicted, time used: ', time() - time0
         if MODEL_TYPE == 0:
-            y_predicted = process.weighted_sum(np.matrix(result_matrix), weight_d_t)
+            y_predicted = process.weighted_sum(np.matrix(result_matrix), uids, weight_d_t, WEIGHTED)
         else:
-            y_predicted = process.weighted_sum(np.matrix(result_matrix), weight_d_t)
+            y_predicted = process.weighted_sum(np.matrix(result_matrix), uids, weight_d_t, WEIGHTED)
 
         error = np.sqrt(mean_squared_error(y_predicted, test_data[1]))
 
@@ -140,6 +147,15 @@ def run_phasetwo():
 
         print 'Iteration ', iteration, ': All models trained, time used:', time() - time0_0
         iteration += 1
+
+        with open('../data/results.csv', 'a') as f:
+            j = 0
+            writer = csv.writer(f)
+            for i in test_index:
+                ll = [i, y_predicted[j], test_data[1].values[j], abs(y_predicted[j] - test_data[1].values[j])]
+                writer.writerow(ll)
+                j += 1
+
     error_f = np.mean(errors)
 
     print '\nJOB DONE: the ', K_fold, ' fold Cross Validation has completed, time used: ', time() - timezero
@@ -161,4 +177,4 @@ def get_prediction():
 
 if __name__ == '__main__':
     run_phaseone()
-    #run_phasetwo()
+

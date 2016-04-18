@@ -57,12 +57,20 @@ class SecondPhase():
         elif type == 1:
             return GPregression(X_train, y_train)
 
-
-    def weighted_sum(self, matrix, weight_vector):
+    def weighted_sum(matrix, uids, weight_vector, weighted=1):
+        predictions = []
         matrix = matrix.T
-        if len(weight_vector) == 0:
-            return matrix.mean(axis=1)
-        else:
-            ws = matrix.dot(weight_vector).A1
-            return ws
 
+        for n in range(len(uids)):
+            if weighted == 0:
+                vector = matrix[n].A1
+                print vector
+                pred = vector[np.array(weight_vector[uids[n]]).argmax()]
+            else:
+                li = weight_vector[uids[n]]
+                try:
+                    pred = matrix[n].dot(li).A1[0]
+                except:
+                    pred = np.mean(matrix[n])
+            predictions.extend([pred])
+        return predictions

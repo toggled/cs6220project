@@ -8,6 +8,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 import lda
 import numpy as np
 import pickle
+from collections import defaultdict
+import cPickle as pk
 
 __author__ = 'Naheed'
 
@@ -26,8 +28,7 @@ def stemmer(sent):
 
 loaded = True  # True, If autoload self.df_all from MergedProductInfo csv file, False if i want to make it on the fly.
 NUM_TOPICS = 50  # Number of Topics i want to extract Out of the whole corpus of documents.
-#n_top_words = 100  # Number of words per topic having most probability.
-#n_top_words = 10  # Number of words per topic having most probability.
+n_top_words = 10  # Number of words per topic having most probability.
 
 class Lda:
     '''
@@ -74,6 +75,7 @@ class Lda:
             # df_extracted.to_csv('../src/MergedProductinfo.csv',encoding = "ISO-8859-1")
             self.df_all = pd.read_csv('src/MergedProductinfo.csv', encoding="ISO-8859-1")
 
+
     def runlda(self):
         # vectorizer = CountVectorizer(encoding = "ISO-8859-1",analyzer = 'word',tokenizer = None,preprocessor= None)
         vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
@@ -83,10 +85,13 @@ class Lda:
         vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
                                      preprocessor=None, max_features=500)
         '''
+
         feat = vectorizer.fit_transform(self.df_all['allaboutproduct'])
+
         features = feat.toarray()
         # print features.shape
-        model = lda.LDA(n_topics=NUM_TOPICS, n_iter=50, random_state=1)
+        model = lda.LDA(n_topics=NUM_TOPICS, n_iter=150, random_state=1)
+
         model.fit(features)
         topic_word = model.topic_word_
         # print topic_word
@@ -113,13 +118,16 @@ class Lda:
             # print("doc: {} topic: {}\n{}...".format(n, topic_most_pr, self.df_all['allaboutproduct'][n].encode("utf8")))
             self.bin[topic_most_pr].append(self.df_all['product_uid'][n])
 
-        print type(self.bin)
-        print len(self.bin[0])
-        print len(self.bin[1])
         # Dump the bin into a pickle file to make the phase one independent of phase two
-        with open('topicbins.pk', 'wb') as fp:
+        with open('topicbins.pkl', 'wb') as fp:
             pickle.dump(self.bin, fp)
 
-        # Dump the weights into a pickle file
-        with open('doc_topicdist.pk', 'wb') as fp:
-            pickle.dump(self.doc_topic, fp)
+        # Dump the weights into a pickle file, which is an dictionary
+        d_t = defaultdict(list)
+        for n in range(features.shape[0]):
+            uid = int(self.df_all['product_uid'][n])
+            d_t[uid] = self.doc_topic[n]
+        f = file('doc_topic.pkl', 'wb')
+        pickle.dump(d_t, f)
+
+

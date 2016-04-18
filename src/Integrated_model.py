@@ -9,15 +9,18 @@ from time import time
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
 from sklearn.cross_validation import KFold
 from sklearn.metrics import mean_squared_error
+import csv
 # from GP_regression import GPregression
 
-bins_dir = '/Users/Oyang/Documents/workspace/6220/tmp/'
+bins_dir = '../'
 df_dir = '/Users/Oyang/Documents/workspace/cs6220/src/'
 # if equals 0, use random forest, if equals 1, use gaussian process regression
 MODEL_TYPE = 0
+# if weighted = 0, chose the model with highest probability, it weighted = 1, use weighted sum
+WEIGHTED = 0
 # Ture means for running on the fly(usually for the first time), False for running on the local stored data.
 realtime = False
-K_fold = 10
+K_fold = 2
 
 
 # assume here all the feature extraction has been finished and the df_all has been produced
@@ -58,23 +61,35 @@ def test_data_construct(testset):
 
 def select_model(type):
     if type == 0:
-        rf = RandomForestRegressor(n_estimators=15, max_depth=6, random_state=0)
+        rf = RandomForestRegressor(n_estimators=15, max_depth=10, random_state=0)
         clf = BaggingRegressor(rf, n_estimators=45, max_samples=0.1, random_state=25)
         return rf
     elif type == 1:
         return 0
 
-def weighted_sum(matrix,weight_vector):
-    if len(weight_vector) == 0:
-        matrix = matrix.T
-        return matrix.mean(axis=1)
-    else:
-        return 0
+def weighted_sum(matrix,uids,weight_vector,weighted=1):
+    predictions = []
+    matrix = matrix.T
+
+    for n in range(len(uids)):
+        if weighted == 0:
+            vector = matrix[n].A1
+            print vector
+            pred = vector[np.array(weight_vector[uids[n]]).argmax()]
+        else:
+            li = weight_vector[uids[n]]
+            try:
+                pred = matrix[n].dot(li).A1[0]
+            except:
+                pred = np.mean(matrix[n])
+        predictions.extend([pred])
+    return predictions
+
 
 
 if __name__ == '__main__':
     timezero = time()
-    num_train = 74067
+    num_train = 74000
     df_all = pandas.read_csv(df_dir+'my_df_all.csv')
     # df_all = df_all.drop(['id','search_term', 'product_title', 'product_description', 'product_info', 'attr', 'brand'],
     #                      axis=1)
@@ -88,10 +103,12 @@ if __name__ == '__main__':
     models = defaultdict(object)
     y_pred = defaultdict(list)
     errors = []
+    #########change
     # weight_d_t is the documenet-topic probability, which is a list
-    weight_d_t = []
-
-    f1 = file(bins_dir+'topicbins.pk','rb')
+    f = file('../doc_topic.pkl','rb')
+    weight_d_t = pk.load(f)
+    ########change
+    f1 = file(bins_dir+'topicbins.pkl','rb')
     bins = pk.load(f1)
     newbins = []
     for bin in bins:
@@ -113,6 +130,9 @@ if __name__ == '__main__':
         print '\nIteration ', iteration, ' starts'
         train_set = df.iloc[train_index]
         test_set = df.iloc[test_index]
+        uids = test_set['product_uid'].values
+        # print uids
+        # print uids[0]
 
         time0 = time()
         train_bin = train_data_construct(newbins, train_set, iteration, realtime)
@@ -146,14 +166,24 @@ if __name__ == '__main__':
             result = clf.predict(test_data[0].values)
             result_matrix.append(result)
             # print 'model ', i , ' trained and predicted, time used: ', time() - time0
-        y_predicted = weighted_sum(np.matrix(result_matrix),weight_d_t)
-        error = np.sqrt(mean_squared_error(y_predicted,test_data[1]))
+        y_predicted = weighted_sum(np.matrix(result_matrix),uids, weight_d_t, WEIGHTED)
+        error = np.sqrt(mean_squared_error(y_predicted,test_data[1].values))
 
         #record the error of each iteration
         errors= errors + [error]
 
         print 'Iteration ', iteration, ': All models trained, time used:', time() - time0_0
         iteration += 1
+
+        with open('../data/results.csv','a') as f:
+            j = 0
+            writer = csv.writer(f)
+            for i in test_index:
+                ll = [i, y_predicted[j],test_data[1].values[j], abs(y_predicted[j]-test_data[1].values[j])]
+                writer.writerow(ll)
+                j += 1
+
+
     error_f = np.mean(errors)
 
     print '\nJOB DONE: the ', K_fold, ' fold Cross Validation has completed, time used: ', time() - timezero
