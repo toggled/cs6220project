@@ -16,11 +16,11 @@ class GPregression:
         if model == "full":
             print "Building FullGP Model"
             self.model = FullGP_RBF.FullGP_RBF(self.trainx, self.trainy)
-            self.model.InferHypersHMC(500)
+            self.model.InferHypersHMC(50)
 
         if model == "sparse":
             print "Building Sparse GP Model"
-            self.model = SparseGP.SparseGP(self.trainx, self.trainy, 5)
+            self.model = SparseGP.SparseGP(self.trainx, self.trainy, 100)
 
         print("--- Training Model : %s minutes ---" % round(((time.time() - start_time) / 60), 2))
 

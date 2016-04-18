@@ -7,15 +7,15 @@ import numpy as np
 from time import time
 from sklearn.cross_validation import KFold
 from sklearn.metrics import mean_squared_error
-# from GP_regression import GPregression
+
 
 
 __author__ = 'Naheed'
 
 bins_dir = '/Users/Oyang/Documents/workspace/6220/tmp/'
-df_dir = '/Users/Oyang/Documents/workspace/cs6220/src/'
+df_dir = 'src/'
 # if equals 0, use random forest, if equals 1, use gaussian process regression
-MODEL_TYPE = 0
+MODEL_TYPE = 1
 # Ture means for running on the fly(usually for the first time), False for running on the local stored data.
 realtime = False
 K_fold = 2
@@ -63,14 +63,14 @@ def run_phasetwo():
     # weight_d_t is the documenet-topic probability, which is a list
     weight_d_t = []
 
-    f1 = file(bins_dir + 'topicbins.pk', 'rb')
+    f1 = file('topicbins.pk', 'rb')
     bins = pk.load(f1)
     newbins = []
     for bin in bins:
         if len(bin) > 0:
             newbins.append(bin)
 
-    clf = process.select_model(MODEL_TYPE)
+
 
     ######################
     ## Cross Validation ##
@@ -106,8 +106,12 @@ def run_phasetwo():
 
             y_train = train_bin[i][1].values
 
+            clf = process.select_model(MODEL_TYPE,X_train,y_train)
+            if MODEL_TYPE == 0:
+                clf.fit(X_train, y_train)
+            else:
+                clf.BuildModel(model='full')
 
-            clf.fit(X_train, y_train)
             # try using Gaussian Processing Regression:
             # if MODEL_TYPE == 1:
             #     clf = GPregression(X_train, y_train)
@@ -117,10 +121,19 @@ def run_phasetwo():
 
 
             models[i] = clf
-            result = clf.predict(test_data[0].values)
+            if MODEL_TYPE == 1:
+                mean,var = clf.predict(test_data[0].values)
+                result = mean.flatten()
+            else:
+                result = clf.predict(test_data[0].values)
+
             result_matrix.append(result)
-            # print 'model ', i , ' trained and predicted, time used: ', time() - time0
-        y_predicted = process.weighted_sum(np.matrix(result_matrix), weight_d_t)
+            print 'model ', i , ' trained and predicted, time used: ', time() - time0
+        if MODEL_TYPE == 0:
+            y_predicted = process.weighted_sum(np.matrix(result_matrix), weight_d_t)
+        else:
+            y_predicted = process.weighted_sum(np.matrix(result_matrix), weight_d_t)
+
         error = np.sqrt(mean_squared_error(y_predicted, test_data[1]))
 
         errors = errors + [error]

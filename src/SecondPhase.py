@@ -8,7 +8,7 @@ from time import time
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
 from sklearn.cross_validation import KFold
 from sklearn.metrics import mean_squared_error
-# from GP_regression import GPregression
+from GP_regression import GPregression
 
 class SecondPhase():
     def __init__(self,):
@@ -49,13 +49,14 @@ class SecondPhase():
         y_test = testset['relevance']
         return (X_test,y_test)
 
-    def select_model(self, type):
+    def select_model(self, type,X_train=[],y_train=[]):
         if type == 0:
             rf = RandomForestRegressor(n_estimators=15, max_depth=6, random_state=0)
             clf = BaggingRegressor(rf, n_estimators=45, max_samples=0.1, random_state=25)
             return rf
         elif type == 1:
-            return 0
+            return GPregression(X_train, y_train)
+
 
     def weighted_sum(self, matrix, weight_vector):
         matrix = matrix.T
