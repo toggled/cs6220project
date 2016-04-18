@@ -75,7 +75,10 @@ def weighted_sum(matrix,uids,weight_vector,weighted=1):
         if weighted == 0:
             vector = matrix[n].A1
             print vector
-            pred = vector[np.array(weight_vector[uids[n]]).argmax()]
+            try:
+                pred = vector[np.array(weight_vector[uids[n]]).argmax()]
+            except:
+                pred = matrix[n].dot(li).A1[0]
         else:
             li = weight_vector[uids[n]]
             try:
