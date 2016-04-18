@@ -20,12 +20,12 @@ MODEL_TYPE = 1
 realtime = False
 K_fold = 2
 topic_bins = []
-load_pickled = True  # Whether want to load pickled bins from pk file
+load_pickled = False  # Whether want to load pickled bins from pk file
 
 def run_phaseone():
     if load_pickled:
         import pickle
-        with open('./test/topicbins.pk') as f:
+        with open('topicbins.pk') as f:
             topic_bins = pickle.load(f)
 
     else:
@@ -160,4 +160,5 @@ def get_prediction():
 
 
 if __name__ == '__main__':
-    run_phasetwo()
+    run_phaseone()
+    #run_phasetwo()

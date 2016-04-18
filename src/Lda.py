@@ -25,21 +25,21 @@ def stemmer(sent):
 
 
 loaded = True  # True, If autoload self.df_all from MergedProductInfo csv file, False if i want to make it on the fly.
-NUM_TOPICS = 80  # Number of Topics i want to extract Out of the whole corpus of documents.
-# n_top_words = 100  # Number of words per topic having most probability.
-n_top_words = 10  # Number of words per topic having most probability.
+NUM_TOPICS = 50  # Number of Topics i want to extract Out of the whole corpus of documents.
+#n_top_words = 100  # Number of words per topic having most probability.
+#n_top_words = 10  # Number of words per topic having most probability.
 
 class Lda:
     '''
         Improvements/TO DO:
             1. Stop considering numeric words into vocabulary
-            2. Fix the issue of some products don't have description but no attributes. Have to include them as well. May be use join instead of merge
+            2. Fix the issue of some products have description but no attributes. Have to include them as well. May be use join instead of merge
     '''
 
     def __init__(self):
         self.bin = []
         self.df_all = []  # Dataframe of (produid,merged description,attribute)
-        self.topic_words = []  # List of List of String
+        #self.topic_words = []  # List of List of String
 
         if not loaded:
             df_attr = pd.read_csv('../data/attributes.csv', encoding="ISO-8859-1")
@@ -76,12 +76,13 @@ class Lda:
 
     def runlda(self):
         # vectorizer = CountVectorizer(encoding = "ISO-8859-1",analyzer = 'word',tokenizer = None,preprocessor= None)
-        # vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
-        #                                     preprocessor=None, max_features=15000)
+        vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
+                                             preprocessor=None, max_features=15000)
 
+        '''
         vectorizer = CountVectorizer(encoding="ISO-8859-1", analyzer='word', tokenizer=None, \
                                      preprocessor=None, max_features=500)
-
+        '''
         feat = vectorizer.fit_transform(self.df_all['allaboutproduct'])
         features = feat.toarray()
         # print features.shape
@@ -91,13 +92,13 @@ class Lda:
         # print topic_word
         vocab = vectorizer.get_feature_names()
         # print vocab[:10]
-
+        '''
         self.topic_words = [[] for i in range(NUM_TOPICS)]
         for i, topic_dist in enumerate(topic_word):
             self.topic_words[i] = np.array(vocab)[np.argsort(topic_dist)][:-n_top_words - 1:-1]
             # print('Topic {}: {}'.format(i, ' '.join(topic_words)))
-
-        doc_topic = model.doc_topic_
+        '''
+        self.doc_topic = model.doc_topic_
 
         '''
         print("shape: {}".format(doc_topic.shape))
@@ -108,7 +109,7 @@ class Lda:
         self.bin = [[] for i in range(features.shape[0])]  # The topic bins to be used in Phase 2
 
         for n in range(features.shape[0]):
-            topic_most_pr = doc_topic[n].argmax()
+            topic_most_pr = self.doc_topic[n].argmax()
             # print("doc: {} topic: {}\n{}...".format(n, topic_most_pr, self.df_all['allaboutproduct'][n].encode("utf8")))
             self.bin[topic_most_pr].append(self.df_all['product_uid'][n])
 
@@ -118,3 +119,7 @@ class Lda:
         # Dump the bin into a pickle file to make the phase one independent of phase two
         with open('topicbins.pk', 'wb') as fp:
             pickle.dump(self.bin, fp)
+
+        # Dump the weights into a pickle file
+        with open('doc_topicdist.pk', 'wb') as fp:
+            pickle.dump(self.doc_topic, fp)
