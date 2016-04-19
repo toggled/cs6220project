@@ -8,7 +8,7 @@ from time import time
 from sklearn.ensemble import RandomForestRegressor, BaggingRegressor
 from sklearn.cross_validation import KFold
 from sklearn.metrics import mean_squared_error
-from GP_regression import GPregression
+# from GP_regression import GPregression
 
 class SecondPhase():
     def __init__(self,):
@@ -57,14 +57,13 @@ class SecondPhase():
         elif type == 1:
             return GPregression(X_train, y_train)
 
-    def weighted_sum(matrix, uids, weight_vector, weighted=1):
+    def weighted_sum(self, matrix, uids, weight_vector, weighted=1):
         predictions = []
         matrix = matrix.T
 
         for n in range(len(uids)):
             if weighted == 0:
                 vector = matrix[n].A1
-                li = weight_vector[uids[n]]
                 try:
                     pred = vector[np.array(weight_vector[uids[n]]).argmax()]
                 except:
