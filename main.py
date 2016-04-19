@@ -22,7 +22,7 @@ MODEL_TYPE = 0
 # Ture means for running on the fly(usually for the first time), False for running on the local stored data.
 realtime = False
 # if weighted = 0, chose the model with highest probability, it weighted = 1, use weighted sum
-WEIGHTED = 0
+WEIGHTED = 1
 
 K_fold = 2
 topic_bins = []

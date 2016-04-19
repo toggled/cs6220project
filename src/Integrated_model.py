@@ -67,10 +67,9 @@ def select_model(type):
     elif type == 1:
         return 0
 
-def weighted_sum(matrix,uids,weight_vector,weighted=1):
+def weighted_sum( matrix,uids,weight_vector,weighted=1):
     predictions = []
     matrix = matrix.T
-
     for n in range(len(uids)):
         if weighted == 0:
             vector = matrix[n].A1
@@ -80,7 +79,10 @@ def weighted_sum(matrix,uids,weight_vector,weighted=1):
             except:
                 pred = np.mean(matrix[n])
         else:
-            li = weight_vector[uids[n]]
+            try:
+                li = weight_vector[uids[n]]
+            except:
+                print
             try:
                 pred = matrix[n].dot(li).A1[0]
             except:
@@ -169,8 +171,10 @@ if __name__ == '__main__':
             result = clf.predict(test_data[0].values)
             result_matrix.append(result)
             # print 'model ', i , ' trained and predicted, time used: ', time() - time0
+
         y_predicted = weighted_sum(np.matrix(result_matrix),uids, weight_d_t, WEIGHTED)
         error = np.sqrt(mean_squared_error(y_predicted,test_data[1].values))
+        print error
 
         #record the error of each iteration
         errors= errors + [error]
