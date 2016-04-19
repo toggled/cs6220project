@@ -13,12 +13,12 @@ import csv
 
 __author__ = 'Naheed'
 
-bins_dir = '/Users/Oyang/Documents/workspace/6220/tmp/'
+bins_dir = '../'
 
 df_dir = 'data/'
 
 # if equals 0, use random forest, if equals 1, use gaussian process regression
-MODEL_TYPE = 1
+MODEL_TYPE = 0
 # Ture means for running on the fly(usually for the first time), False for running on the local stored data.
 realtime = False
 # if weighted = 0, chose the model with highest probability, it weighted = 1, use weighted sum
@@ -67,8 +67,8 @@ def run_phasetwo():
     models = defaultdict(object)
     errors = []
     # weight_d_t is the documenet-topic probability, which is a list
-    weight_d_t = []
-
+    f = file('doc_topic.pkl','rb')
+    weight_d_t = pk.load(f)
     f1 = file('topicbins.pkl', 'rb')
     bins = pk.load(f1)
     newbins = []
@@ -148,7 +148,7 @@ def run_phasetwo():
         print 'Iteration ', iteration, ': All models trained, time used:', time() - time0_0
         iteration += 1
 
-        with open('../data/results.csv', 'a') as f:
+        with open('data/results.csv', 'a') as f:
             j = 0
             writer = csv.writer(f)
             for i in test_index:
@@ -176,5 +176,5 @@ def get_prediction():
 
 
 if __name__ == '__main__':
-    run_phaseone()
+    run_phasetwo()
 
